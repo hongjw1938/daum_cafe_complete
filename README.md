@@ -29,7 +29,7 @@
             - 이미지를 업로드시에 리사이징(용량, 크기) 할 수 있다.
                 > ubuntu환경 : `sudo apt-get update`를 한 다음 `sudo apt-get install imagemagick`
                 
-                > MacOS : 'brew install imagemagick'
+                > MacOS : `brew install imagemagick`
                 
                 > uploader.rb에서 `include CarrierWave::MiniMagick`를 주석해제 하고, mini_magick gem을 설치한다.
                 
@@ -37,6 +37,7 @@
                     - uploader파일에서 주석 처리되어 있는 부분을 해제 하고 사이즈를 지정한다.
                     - fill은 지정사이즈에 맞춰 resizing하고 남는 부분을 자른다.
                     - fit은 가로 세로 비율을 맞추어서 fitting해준다.
+                    - 사용시에는 해당 versioning된 `method.url`을 이용하여 사용한다.(*posts/show.html.erb*참조)
             - 특정 확장자만 가능하도록 지정할 수 있다.(`extension_whitelist`)
                 - 다른 종류의 파일을 올리게 되면 transaction이 진행되지 않는다.
                 - 이미지외에 다른 파일을 리사이징하게되면 문제가 될 수 있다.
@@ -66,6 +67,9 @@
     - view(views/layouts, views/shared) : 추가 필요
 * 카페
     - route : `resources`를 사용해 RESTful URL 설정.(destroy제와)
+        - 가입 : 가입하는 경우는 `resources`로 지정되어 있지 않으므로 따로 지정한다.
+            > `post '/join_cafe/:cafe_id' => 'cafes#join_cafe', as: 'join_cafe'` : prefix를 지정할 수 있다.
+
     - 관계
         - 한 명의 유저는 여러 카페를 가질 수 있고, 하나의 카페는 여러 유저를 회원으로 갖는다(유저와 M:N관계)
             > Membership으로 Join Table을 만들어 관계설정
@@ -155,23 +159,40 @@
         - 게시글 제목, content, 이미지 경로를 가지며, 관계에 의해 `user_id`, `daum_id`를 가진다.
         * ImageUploader : 이미지를 업로드하기 위해서 사용하는 uploader
     - 컨트롤러
-        - index
-        - show
-        - new
-        - create
-        - edit
-        - update
-        - destroy
-        - set_post(private)
-        - post_params(private)
+        - before_action : 코드를 줄이기 위해 Post객체를 찾는 set_post를 show, edit, destroy, update액션 이전에 수행
+        - index : 게시글 전체를 보여주는 action
+        - show : 특정 게시글만 보여준다.(set_post를 before_action으로 수행하여 해당 객체를 불러옴)
+        - new : 새로운 게시글 객체 생성.
+        - create : 게시글을 실제 작성하는 로직. 
+            > 이 부분에서, 카페와 post의 관계를 이어주기 위해 어떤 카페에서 작성된 글인지 확인하고 싶은 경우 `session`객체를 이용할 수 있다.
+
+            > ex) `@post.daum_id = session[:current_cafe]`
+            
+        - edit : 수정하는 페이지로 이동
+        - update : 실제 게시글을 수정하는 action
+            > `update` method를 이용하여 코드를 줄일 수 있다.
+            
+        - destroy : 게시글을 삭제함
+            > `destroy` 메소드 사용
+            
+        - set_post(private) : 코드의 중복을 줄이기 위해 작성한 로직. Post객체를 읽어온다.
+        - post_params(private) : 게시글 작성 및 수정시 parameter를 전달해준다.
     - 뷰
-        - _form
-        - _post
-        - edit
-        - index
-        - new
-        - show
+        - _form : 게시글 작성, 수정시 render시킬 form
+        - edit : 수정페이지
+        - index : 글 전체 목록 페이지
+        - new : 글 작성 페이지
+        - show : 글 세부 내용 보여주는 페이지(글, 댓글, 업로드된 이미지 등)
 * 댓글(comment)
+    - route : 어떤 게시글에서 작성되었는지 RESTful하게 표시해줄 필요가 있다. 따라서,
+        > `post '/posts/:id/comments/create' => 'comments#create'` 이와 같이 route시킨다.
+
+    - 관계 
+        - 하나의 게시글에는 여러 댓글이 달릴 수 있고, 하나의 댓글은 하나의 포스트에 종속된다.(post와 1:n관계)
     - 모델
+        - 댓글 내용, 작성된 post의 id가 필요하다.
     - 컨트롤러
+        - create : 댓글을 생성한다.
+        - destroy : 댓글을 삭제한다.
     - 뷰
+        - _form : 댓글을 작성하기 위한 render form

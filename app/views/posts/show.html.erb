@@ -1,0 +1,58 @@
+
+
+<p>
+  <strong>Title:</strong>
+  <%= @post.title %>
+</p>
+
+<p>
+  <strong>Contents:</strong>
+  <%= @post.contents %>
+</p>
+
+<p>
+  <strong>Image path:</strong>
+  <img src="<%= @post.image_path %>">
+</p>
+<p>
+  <strong>Thumb Fill:</strong>
+  <img src="<%= @post.image_path.thumb_fill.url %>">
+</p>
+<p>
+  <strong>Thumb Fit:</strong>
+  <img src="<%= @post.image_path.thumb_fit.url %>">
+</p>
+
+
+<%= link_to '수정', edit_post_path(@post) , class: 'btn btn-warning' %> |
+<%= link_to '목록', cafe_path(@post.daum), class: 'btn btn-info' %>
+<%= link_to '삭제', post_path(@post), method: 'DELETE', class: 'btn btn-danger' %>
+
+<br/>
+<br/>
+<!-- 댓글 입력 -->
+<%= render 'comments/form', post: @post %>
+
+<br/>
+<!-- 댓글 리스트 -->
+<!-- model에 has_many :comments를 사용했으므로 @post를 이용해 comments를 메소드처럼 사용 가능 -->
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Id</th>
+      <th scope="col">Content</th>
+      <th scope="col">Button</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @post.comments.each do |comment| %>    
+    <tr>
+      <td><%= comment.id %></td>
+      <td><%= comment.content %></td>
+      <td><%= link_to "삭제", "/comments/#{comment.id}", method: "DELETE",class: "btn btn-danger"%></td>
+    </tr>
+    <% end %>
+  </tbody>
+</table>
+
+  

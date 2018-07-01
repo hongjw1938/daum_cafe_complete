@@ -1,0 +1,24 @@
+<!-- 카페에 등록된 글 -->
+<h1><%= @cafe.title %></h1>
+
+<p><%= @cafe.description %></p>
+
+<div>
+    <% unless @cafe.is_member?(current_user) %>
+    <%= link_to '가입하기', join_cafe_path(@cafe), method: "POST", class: "btn btn-info" %>
+    <% end %>
+</div>
+    
+
+<ul class="list-group">
+  <% @cafe.posts.each do |post| %>
+  <li class="list-group-item d-flex justify-content-between align-items-center">
+
+    <%= link_to "#{ post.title }", post_path(post) %>
+    <span class="badge badge-primary badge-pill"><%= post.comments.count %></span>
+  </li>
+  <% end %>
+</ul>
+
+
+<%= link_to '새글쓰기', new_post_path(cafe_id: @cafe.id), class: 'btn btn-primary' %>
